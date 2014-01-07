@@ -1,13 +1,12 @@
-loopsync v.2 - README v.1.0
+loopsync v.2 - README v.1.1
 =========================
 http://csdnserver.com - http://github.com/chr1573r/loopsync
 
 Written by Christer Jonassen - Cj Designs
 
 loopsync is licensed under CC BY-NC-SA 3.0.
-versatille
-(check LICENCE file or http://creativecommons.org/licenses/by-nc-sa/3.0/ for details.)
 
+(check LICENCE file or http://creativecommons.org/licenses/by-nc-sa/3.0/ for details.)
 
 What is loopsync?
 ---------------------
@@ -78,10 +77,6 @@ after a set number of seconds.
 loopsync continues to run until interrupted by `Ctrl-C` or killed otherwise. 
  
 
-Custom command execution
-------------------------
-
-
 Technical details:
 ------------------
 
@@ -96,6 +91,12 @@ tested in development on raspian, ClearOS 5 and FreeNAS 8.
 Troubleshooting/Tips and tricks:
 --------------------------------
 
+Read the man page and/or check tutorials for rsync. You need to know basic rsync
+inorder to use loopsync in a safe and useful manner
+
+Beware that trailing forward-slashes `/` on the path set in $SOURCEFOLDER
+greatly affects whether a folder(and its contents) or just its contents is syncronized.
+Rule of thumb is that `/` means "Copy the contents of this directory"
 
 Use the $MANUAL variable in sync configs when you first test them,
 this allows you to manually start the sync.

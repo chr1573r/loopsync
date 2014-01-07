@@ -1,0 +1,11 @@
+DESCRIPTION="Push contents of photo folder from mediaserver to raspberrypi"
+PUSHPULL="push"
+SOURCESYSTEM="mediaserver.local.lan"
+SOURCEFOLDER="/home/username/loopsync/export/photo/"
+TARGETSYSTEM="raspberrypi.local.lan"
+TARGETFOLDER="/home/pi/loopsync/photo-import"
+REMOTEUSER="pi"
+KEY="/data/ssh/replication"
+PORT="22"
+#MANUAL=SET 	#Disabled by default
+

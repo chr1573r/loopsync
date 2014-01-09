@@ -8,7 +8,7 @@
 # Check README for instructions
 
 # Variables
-APPVERSION="2.0"
+APPVERSION="2.1"
 STATUS=""$DEF"Idle"
 
 # Pretty colors for the terminal:
@@ -202,13 +202,13 @@ idlewait()
 
 lspush() # Data will be pushed from localhost to remote system
 {
-	rsync -avz $SOURCEFOLDER --progress --delete --log-file=./rsync.log -e "ssh -i $KEY -p $PORT" $REMOTEUSER@$RHOST:$TARGETFOLDER
+	rsync -avz $SOURCEFOLDER $RSYNCPARAMETER --progress --delete --log-file=./rsync.log -e "ssh -i $KEY -p $PORT" $REMOTEUSER@$RHOST:$TARGETFOLDER
 }
 
 
 lspull() # Data will be pulled from remote system to localhost
 {
-	rsync -avz --progress --delete --log-file=./rsync.log -e "ssh -i $KEY -p $PORT" $REMOTEUSER@$RHOST:$SOURCEFOLDER $TARGETFOLDER
+	rsync -avz $RSYNCPARAMETER --progress --delete --log-file=./rsync.log -e "ssh -i $KEY -p $PORT" $REMOTEUSER@$RHOST:$SOURCEFOLDER $TARGETFOLDER
 }
 
 
@@ -244,6 +244,7 @@ else
 		ut "  Auto-wakeup will be enabled (loopsleep.txt will be erased $CHECKINTERVAL seconds after each cfg.lst traversal.)"
 		if [ ! -z "$DISABLEAUTOSLEEP" ]; then ut "  Notice: Auto-wake up is enabled while auto-sleep is disabled"; ut "          This means loopsync will run continuously (without a $CHECKINTERVAL sec pause)"; ut "          unless loopsleep.txt is generated manually/externally"; fi
 	fi
+
 fi
 }
 
@@ -268,6 +269,7 @@ looprep()
 			KEY=
 			PORT=
 			MANUAL=
+			RSYNCPARAMETER=
 
 			ut "Reading sync configuration..."
 			ut "     -> "$CYAN"$CURRENTDATASET"$DEF""
@@ -284,7 +286,6 @@ looprep()
 			if [ -z "$REMOTEUSER" ]; then status error; ut "REMOTEUSER not set, please check config!"; exit; fi				
 			if [ -z "$KEY" ]; then status error; ut "KEY not set, please check config!"; exit; fi
 			if [ -z "$PORT" ]; then status error; ut "PORT not set, please check config!"; exit; fi
-			# Determine push or pull
 			modeselect
 			ut
 			ut "Loaded config:"
@@ -303,6 +304,8 @@ looprep()
 			ut "   Authentication key:              "$CYAN"$KEY"$DEF""
 			ut "   Port used for SSH connection:    "$CYAN"$PORT"$DEF""
 			ut
+			if [ ! -z "$RSYNCPARAMETER" ]; then ut "   Additional rsync parameters:    "$CYAN"$RSYNCPARAMETER"$DEF""; ut; fi
+			# Determine push or pull
 			ut "Looks like we're gonna $PUSHPULL changes from "$CYAN"$SOURCESYSTEM "$DEF"to "$CYAN"$TARGETSYSTEM"$DEF"."
 			ut
 			ut "Checking remote system:"
@@ -321,9 +324,9 @@ looprep()
 				ut
 				ut "We'll now execute the following command:"
 				if [ "$PUSHPULL" == "PUSH" ]; then
-					ut ""$CYAN"rsync -avz $SOURCEFOLDER --progress --delete --log-file=./rsync.log -e \"ssh -i $KEY -p $PORT\" $REMOTEUSER@$RHOST:$TARGETFOLDER"
+					ut ""$CYAN"rsync -avz $SOURCEFOLDER $RSYNCPARAMETER --progress --delete --log-file=./rsync.log -e \"ssh -i $KEY -p $PORT\" $REMOTEUSER@$RHOST:$TARGETFOLDER"
 				else
-					ut ""$CYAN"rsync -avz --progress --delete --log-file=./rsync.log -e \"ssh -i $KEY -p $PORT\" $REMOTEUSER@$RHOST:$SOURCEFOLDER $TARGETFOLDER"
+					ut ""$CYAN"rsync -avz $RSYNCPARAMETER --progress --delete --log-file=./rsync.log -e \"ssh -i $KEY -p $PORT\" $REMOTEUSER@$RHOST:$SOURCEFOLDER $TARGETFOLDER"
 				fi
 				if [ -z "$MANUAL" ]; then
 					ut "Sync will auto-start in 10 seconds."

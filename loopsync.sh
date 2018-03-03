@@ -105,6 +105,7 @@ status()
 		CLEARTEXTSTATUS="HALT"
 		;;
 	esac
+    nhook "$CLEARTEXTSTATUS"
 	logg "Status set to $1"
 }
 

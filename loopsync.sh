@@ -1,6 +1,6 @@
 #!/bin/bash
 # loopsync.sh - rsync replication script
-# WARNING - This code is not necessarily safe on your system, use at your own responibility!
+# WARNING - This code is not necessarily safe on your system, use at your own responsibility!
 # Written by Christer Jonassen - cjdesigns.no
 # Licensed under CC BY-NC-SA 3.0 (check LICENCE file or http://creativecommons.org/licenses/by-nc-sa/3.0/ for details.)
 # Made possible by the wise *nix and BSD people sharing their knowledge online
@@ -8,7 +8,7 @@
 # Check README for instructions
 
 # Variables
-APPVERSION="2.1"
+APPVERSION="2.2"
 STATUS=""$DEF"Idle"
 
 # Pretty colors for the terminal:
@@ -50,7 +50,28 @@ timeupdate() # Sets current time into different variables. Used for timestamping
 	SEC=$(date +"%S") 					# 56
 }
 
+nhook()
+{
+	if [[ -n "$NOTIFYHOOK" ]]; then
+		case "$1" in
+			startup|sleep|wakeup|break|shutdown) #global state notification, no additional parameters
+				$NOTIFYHOOK "$1"
+				;;
 
+			init|busy|sync|error) #status change notifications, no additional parameters
+				$NOTIFYHOOK "$1"
+				;;
+
+			sync_list_not_found) # sync list file not found, path as parameter
+				$NOTIFYHOOK "$1" $(pwd)/cfg.lst
+				;;
+				
+			current_sync|rsync_start|rsync_ok|rsync_error|invalid_mode|ssh_error|ping_error|sync_dataset_not_found|sync_dataset_incomplete) # syncjob specific, dataset as parameter
+				$NOTIFYHOOK "$1" $CURRENTDATASET
+				;;			
+		esac
+	fi
+}
 ut()
 {
 	echo -e ""$LIGHTGRAY"["$DEF""$GREEN"ls"$LIGHTGRAY"]"$DEF"[$STATUS][$(date +"%a %d %b, %R:%S")]"$LIGHTYELLOW":"$DEF" $1"
@@ -140,6 +161,7 @@ modeselect() # Determine push or pull and sets variables based on which way we a
 		
 		*)
 			status error
+			nhook invalid_mode
 			ut "Value of \$PUSHPULL was not recognized as \"PUSH\" or \"PULL\"."
 			ut "Please correct this in the cfg file $CURRENTDATASET"
 			exit
@@ -157,6 +179,7 @@ checkping() # Check if remote system is pingable
 		else
 			CONCHECK="ERR"
 			status error
+			nhook ping_error
 			ut "     -> Target is "$RED"not pingable"$DEF""
 			sleep 2
 		fi
@@ -172,6 +195,7 @@ checkssh()
 		else
 			CONCHECK="ERR"
 			status error
+			nhook ssh_error
 			ut "     -> SSH test connection "$RED"unsuccessful"$DEF""
 			sleep 2
 		fi
@@ -181,8 +205,9 @@ checkssh()
 idlewait()
 {
 	ut "Checking if loopsleep.txt is present.."
-	if [ -f loopsleep.txt ]; 
-		then status idle
+	if [ -f loopsleep.txt ]; then
+		status idle
+		nhook sleep
 		ut "Entering deep sleep (loopsleep.txt detected)"
 
 		ut "Waiting until told otherwise. Re-checking for go-signal every "$LIGHTGRAY"$CHECKINTERVAL"$DEF" second(s)"
@@ -197,18 +222,19 @@ idlewait()
 		done
 	fi
 	ut "loopsleep.txt not detected, re-initializing loopsync"
+	nhook wakeup
 }
 
 
 lspush() # Data will be pushed from localhost to remote system
 {
-	rsync -avz $SOURCEFOLDER $RSYNCPARAMETER --progress --delete --log-file=./rsync.log -e "ssh -i $KEY -p $PORT" $REMOTEUSER@$RHOST:$TARGETFOLDER
+	rsync -avz $SOURCEFOLDER $RSYNCPARAMETER --progress --delete --log-file=./rsync.log -e "ssh -i $KEY -p $PORT" $REMOTEUSER@$RHOST:$TARGETFOLDER && nhook rsync_ok || nhook rsync_error
 }
 
 
 lspull() # Data will be pulled from remote system to localhost
 {
-	rsync -avz $RSYNCPARAMETER --progress --delete --log-file=./rsync.log -e "ssh -i $KEY -p $PORT" $REMOTEUSER@$RHOST:$SOURCEFOLDER $TARGETFOLDER
+	rsync -avz $RSYNCPARAMETER --progress --delete --log-file=./rsync.log -e "ssh -i $KEY -p $PORT" $REMOTEUSER@$RHOST:$SOURCEFOLDER $TARGETFOLDER && nhook rsync_ok || nhook rsync_error
 }
 
 
@@ -258,6 +284,7 @@ looprep()
 	while read CURRENTDATASET <&9 # The script will repeat below until CTRL-C is pressed
 		do
 			status busy
+			nhook current_sync
 			timeupdate
 			ut "Preparing next rsync..."
 			# Blank variables before we read CURRENTDATASET
@@ -274,18 +301,23 @@ looprep()
 			ut "Reading sync configuration..."
 			ut "     -> "$CYAN"$CURRENTDATASET"$DEF""
 
-			if [ ! -f $CURRENTDATASET ]; then status error; ut "Could not find $CURRENTDATASET. Check your cfg.lst/config locations and try again"; exit; fi
+			if [ ! -f $CURRENTDATASET ]; then
+				status error
+				nhook sync_dataset_not_found
+				ut "Could not find $CURRENTDATASET. Check your cfg.lst/config locations and try again"
+				exit
+			fi
 
 			source $CURRENTDATASET
-			if [ -z "$DESCRIPTION" ]; then status error; ut "DESCRIPTION not set, please check config!"; exit; fi
-			if [ -z "$PUSHPULL" ]; then status error; ut "PUSHPULL not set, please check config!"; exit; fi
-			if [ -z "$SOURCESYSTEM" ]; then status error; ut "SOURCESYSTEM not set, please check config!"; exit; fi
-			if [ -z "$SOURCEFOLDER" ]; then status error; ut "SOURCEFOLDER not set, please check config!"; exit; fi
-			if [ -z "$TARGETSYSTEM" ]; then status error; ut "TARGETSYSTEM not set, please check config!"; exit; fi
-			if [ -z "$TARGETFOLDER" ]; then status error; ut "TARGETFOLDER not set, please check config!"; exit; fi
-			if [ -z "$REMOTEUSER" ]; then status error; ut "REMOTEUSER not set, please check config!"; exit; fi				
-			if [ -z "$KEY" ]; then status error; ut "KEY not set, please check config!"; exit; fi
-			if [ -z "$PORT" ]; then status error; ut "PORT not set, please check config!"; exit; fi
+			if [ -z "$DESCRIPTION" ]; then status error; nhook sync_dataset_incomplete ; ut "DESCRIPTION not set, please check config!"; exit; fi
+			if [ -z "$PUSHPULL" ]; then status error; nhook sync_dataset_incomplete ; ut "PUSHPULL not set, please check config!"; exit; fi
+			if [ -z "$SOURCESYSTEM" ]; then status error; nhook sync_dataset_incomplete ; ut "SOURCESYSTEM not set, please check config!"; exit; fi
+			if [ -z "$SOURCEFOLDER" ]; then status error; nhook sync_dataset_incomplete ; ut "SOURCEFOLDER not set, please check config!"; exit; fi
+			if [ -z "$TARGETSYSTEM" ]; then status error; nhook sync_dataset_incomplete ; ut "TARGETSYSTEM not set, please check config!"; exit; fi
+			if [ -z "$TARGETFOLDER" ]; then status error; nhook sync_dataset_incomplete ; ut "TARGETFOLDER not set, please check config!"; exit; fi
+			if [ -z "$REMOTEUSER" ]; then status error; nhook sync_dataset_incomplete ; ut "REMOTEUSER not set, please check config!"; exit; fi				
+			if [ -z "$KEY" ]; then status error; nhook sync_dataset_incomplete ; ut "KEY not set, please check config!"; exit; fi
+			if [ -z "$PORT" ]; then status error; nhook sync_dataset_incomplete ; ut "PORT not set, please check config!"; exit; fi
 			modeselect
 			ut
 			ut "Loaded config:"
@@ -345,6 +377,7 @@ looprep()
 				ut "Ready for rsync! - "$CYAN"1"
 				sleep 1
 				ut ""$PURPLE"#"$DEF" BEGIN RSYNC OUTPUT "$PURPLE"#"$PURPLE""
+				nhook rsync_start
 				if [ "$PUSHPULL" == "PUSH" ]; then
 					lspush
 				else
@@ -385,10 +418,11 @@ looprep()
 
 
 #init
-trap "{ status error; ut \"Caught SIGINT or SIGTERM. This happens if loopsync is aborted by Ctrl-C or otherwise killed.\";  exit; }" SIGINT SIGTERM # Set trap for catching Ctrl-C and kills, so we can reset terminal upon exit
-trap "{	sleep 3; ut \"loopsync will now terminate.\"; sleep 2; logg \"loopsync $APPVERSION terminated at `date`\"; reset; echo \"loopsync $APPVERSION terminated at `date`\"; }" EXIT # exit procedure
+trap "{ status error; nhook break; ut \"Caught SIGINT or SIGTERM. This happens if loopsync is aborted by Ctrl-C or otherwise killed.\";  exit; }" SIGINT SIGTERM # Set trap for catching Ctrl-C and kills, so we can reset terminal upon exit
+trap "{	sleep 3; ut \"loopsync will now terminate.\"; sleep 2; logg \"loopsync $APPVERSION terminated at `date`\"; nhook shutdown; reset; echo \"loopsync $APPVERSION terminated at `date`\"; }" EXIT # exit procedure
 #splashscreen
 splash
+nhook startup
 sleep 2
 clear
 
@@ -401,8 +435,14 @@ sleep 3
 ut "# Finished applying config."
 ut
 ut "Checking list over sync jobs.."
-if [ ! -f cfg.lst ]; then status error; ut "Could not find $(pwd)/cfg.lst. Make sure this file exists and restart loopsync"; exit; fi
-ut "        Sync list found!"
+if [ ! -f cfg.lst ]; then
+	status error
+	sync_list_not_found
+	ut "Could not find $(pwd)/cfg.lst. Make sure this file exists and restart loopsync"
+	exit
+else
+	ut "        Sync list found!"	
+fi
 
 #main
 while true

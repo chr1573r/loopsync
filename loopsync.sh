@@ -58,9 +58,9 @@ nhook()
 				$NOTIFYHOOK "$1"
 				;;
 
-			init|busy|sync|error) #status change notifications, no additional parameters
-				$NOTIFYHOOK "$1"
-				;;
+			Idle|Busy|Sync|HALT) #status change notifications, no additional parameters
+				[[ "$1" == "HALT" ]] && $NOTIFYHOOK "Error" || $NOTIFYHOOK "$1"
+                ;;
 
 			sync_list_not_found) # sync list file not found, path as parameter
 				$NOTIFYHOOK "$1" $(pwd)/cfg.lst

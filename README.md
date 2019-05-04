@@ -11,6 +11,8 @@ loopsync is licensed under CC BY-NC-SA 3.0.
 What is loopsync?
 ---------------------
 
+![loopsync](https://raw.githubusercontent.com/chr1573r/chr1573r.github.io/master/repo-assets/loopsync/img/loopsync.png)
+
 loopsync is a bash script based rsync wrapper that aims to automate different file sync scenarios.
 While loopsync v.1 was push only (transfer from local system to remote system),
 version 2 supports push (transfer from remote system to local system) and is overall more versatile.

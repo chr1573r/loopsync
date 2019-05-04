@@ -25,11 +25,6 @@ By default, the script is meant to be always running while a cronjob can trigger
 
 loopsync can be used to backup multiple clients to a server, replicating files from one server to another etc.
 
-With some additional work, you can hook it up to Slack or something else using the built-in notifyhooks
-![loopsync slack](https://raw.githubusercontent.com/chr1573r/chr1573r.github.io/master/repo-assets/loopsync/img/slack.png)
-
-
-
 Install instructions
 ----------------------
 
@@ -121,4 +116,7 @@ Experiment with the different options in global.cfg to see what works best on yo
 
 global.cfg and sync configs are read using `source`, so you can easily inject your own
 stuff in them if you want to
+
+With some additional work, you can hook it up to Slack or something else using the built-in notifyhooks
+![loopsync slack](https://raw.githubusercontent.com/chr1573r/chr1573r.github.io/master/repo-assets/loopsync/img/slack.png)
 

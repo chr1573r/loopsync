@@ -1,0 +1,2 @@
+export slack_channel='loopsync'
+export slack_url='https://hooks.slack.com/services/....'

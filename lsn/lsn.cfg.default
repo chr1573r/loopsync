@@ -1,0 +1,1 @@
+lsn_providers=("loopback") # syntax: bash array. if first item in array is 'all', lsn will invoke all .sh files in providers directory

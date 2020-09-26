@@ -1,4 +1,10 @@
 #!/bin/bash
+# lsn - loopsync notification
+#
+# Message broker that converts Loopsync notifyhooks into human readable messages.
+#
+# lsn supports a fan-out design using "providers", so that you can publish a single notification to multiple, different targets (e.g slack, loopstat)
+
 lsn_dir="$( cd "$( dirname "${BASH_SOURCE[0]}" )" >/dev/null 2>&1 && pwd )"
 
 init(){
@@ -38,8 +44,9 @@ determine_source(){
 
 
 parser(){
+    syncjob=none # Syncjob defaults to none unless overridden during parsing
     case "$1" in
-        startup|sleep|wakeup|break|shutdown) #global state notification, no additional parameters
+        startup|sleep|wakeup|break|shutdown) #runtime change notification, no additional parameters
             category=runtime_info
             [[ "$1" == startup ]] && msg="Loopsync starting up"
             [[ "$1" == sleep ]] && msg="Entering sleep mode"

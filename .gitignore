@@ -217,3 +217,4 @@ pip-log.txt
 *.sync
 *.cfg
 *.lst
+loopstat/lsreceiver

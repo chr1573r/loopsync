@@ -1,0 +1,21 @@
+lsn notification format
+-----------------------
+
+When lsn invokes a provider, the following positional parameters are passed along:
+<source> <category> <syncjob> <msg>
+
+  source: 
+           (default)  SSH_CLIENT dns name (so that lsn may be invoked remotly from a loopsync host)
+           (fallback) local hostname
+
+  category:
+           'runtime_info'         Changes to the loopsync runtime (starting up, shutting down etc)
+           'status'               Indicates what loopsync is currently doing (idle, syncing etc)
+           'sync_list_not_found'  Fatal error during startup if loopsync can not locate the sync list
+           'syncjob'              Notifyhooks issued by loopsync when working on a specific syncjob/dataset
+
+  syncjob:
+           Set to syncjob filename if category is 'syncjob', otherwise set to 'none'
+
+  msg:
+           May contain the original message from the notifyhook, or a more human readable variant.

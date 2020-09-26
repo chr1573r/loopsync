@@ -54,19 +54,19 @@ nhook()
 {
 	if [[ -n "$NOTIFYHOOK" ]]; then
 		case "$1" in
-			startup|sleep|wakeup|break|shutdown) #global state notification, no additional parameters
+			startup|sleep|wakeup|break|shutdown) #runtime change notification, no additional parameters
 				$NOTIFYHOOK "$1"
 				;;
 
-			Idle|Busy|Sync|HALT) #status change notifications, no additional parameters
-				[[ "$1" == "HALT" ]] && $NOTIFYHOOK "Error" || $NOTIFYHOOK "$1"
+			Idle|Busy|Sync|HALT) #status change notification, no additional parameters
+				$NOTIFYHOOK "$1"
                 ;;
 
 			sync_list_not_found) # sync list file not found, path as parameter
 				$NOTIFYHOOK "$1" $(pwd)/cfg.lst
 				;;
 
-			current_sync|rsync_start|rsync_ok|rsync_error|invalid_mode|ssh_error|ping_error|sync_dataset_not_found|sync_dataset_incomplete) # syncjob specific, dataset as parameter
+			current_sync|rsync_start|rsync_ok|rsync_error|invalid_mode|ssh_error|ping_error|sync_dataset_not_found|sync_dataset_incomplete) # syncjob specific staus, dataset as parameter
 				$NOTIFYHOOK "$1" $CURRENTDATASET
 				;;			
 		esac

@@ -25,9 +25,9 @@ publish(){
 [[ -z "${slack_channel}" ]] && echo "Slack provider error: Slack channel not configured" && exit 1
 [[ -z "${slack_url}" ]] && echo "Slack provider error: Slack webhook url not configured" && exit 1
 
-source="$1"
-category="$2"
-syncjob="$3"
-msg="$4"
+source="${1^^}"
+category="${2}"
+syncjob="${3}"
+msg="${4}"
 
 notification "$category" "$msg"

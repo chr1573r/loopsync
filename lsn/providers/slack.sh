@@ -1,12 +1,13 @@
 #!/bin/bash
 # Slack provider for lsn
 # Sends lsn notifications to a Slack channel using standard Slack webhooks
+# Applies some message formatting and also ignores 'status' notifyhooks to avoid being too chatty
 #
 # Add slack channel and slack webhook url to slack.cfg
 #
 notification(){
     case "$1" in
-        runtime_info|status|sync_list_not_found)
+        runtime_info|sync_list_not_found)
             publish "*${source}* ${2}"
             ;;
         syncjob)

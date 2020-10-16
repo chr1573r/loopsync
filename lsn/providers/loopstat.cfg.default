@@ -1,0 +1,2 @@
+# loopstat provider expects a valid path to a loopstat_receiver
+export loopstat_receiver="../loopstat/lsreceive"

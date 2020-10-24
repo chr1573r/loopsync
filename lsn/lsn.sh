@@ -49,12 +49,12 @@ parser(){
         startup|sleep|wakeup|break|shutdown) #runtime change notification, no additional parameters
             category=runtime_info
             [[ "$1" == startup ]] && msg="Loopsync starting up"
-            [[ "$1" == sleep ]] && msg="Entering sleep mode"
+            [[ "$1" == sleep ]] && msg="Entering sleep mode. Sleeping until $(date -d "$2 seconds")"
             [[ "$1" == wakeup ]] && msg="Waking up (waking up inside)"
             [[ "$1" == break ]] && msg="Break"
             [[ "$1" == shutdown ]] && msg="Shutting down"
             ;;
-
+            
         Idle|Busy|Sync|HALT) #status change notifications, no additional parameters
             category=status
             msg="$1"

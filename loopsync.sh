@@ -54,8 +54,12 @@ nhook()
 {
 	if [[ -n "$NOTIFYHOOK" ]]; then
 		case "$1" in
-			startup|sleep|wakeup|break|shutdown) #runtime change notification, no additional parameters
+			startup|wakeup|break|shutdown) #runtime change notification, no additional parameters
 				$NOTIFYHOOK "$1"
+				;;
+
+			sleep) #going into sleep, add sleeptime as second parameter
+				$NOTIFYHOOK "$1" "$CHECKINTERVAL"
 				;;
 
 			Idle|Busy|Sync|HALT) #status change notification, no additional parameters

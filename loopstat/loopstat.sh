@@ -174,8 +174,21 @@ gfx(){
 		host_render)
 			shift 1
 			host="$1"
-			host_status=$(echo -e ${host_entries[$host]} | cut -f3)
-			echo -e "${host} [$host_status]$(tput el)"
+			IFS=$'\t' read -r host_timestamp host_source host_status <<< "$(echo -e ${host_entries[$host]})"
+			if [[ "${host_status:21:14}" == "Sleeping until" ]]; then # reformat wakeup time if available.
+				host_sleep_eta=true
+				wakeup="$(date -d "${host_status:36}" +%s)"
+				now=$(date +%s)
+				time_between_now_and_wakeup="$(( wakeup - now ))"
+				if [[ "$time_between_now_and_wakeup" -ge 0 ]]; then
+					host_status="${host_status:21}. $time_between_now_and_wakeup seconds remaining"
+				elif [[ "$time_between_now_and_wakeup" -lt 0 ]]; then
+					host_status="${host_status:21}. ${time_between_now_and_wakeup:1} seconds overslept"
+				fi
+			else
+				host_sleep_eta=false
+			fi
+			echo -e "${host} \t${host_timestamp}\t \t${host_status}$(tput el)"
 		;;
 
 		stat_render)
@@ -186,6 +199,8 @@ gfx(){
 			elif $host_update; then
 				local render=true
 			elif $syncjob_update; then
+				local render=true
+			elif $host_sleep_eta; then
 				local render=true
 			else
 				local render=false
@@ -198,12 +213,12 @@ gfx(){
 				for host in "${!host_entries[@]}"; do
 					if $once; then
 						echo -e "HOST\tTIMESTAMP\tSYNCJOB\tSTATUS$(tput el)"
-						echo
+						echo "$(tput el)"
 						once=false
 					fi
 					gfx host_render "${host}"
-					for sync_entry in "${!sync_entries[@]}"; do
-						
+					echo "$(tput el)"
+					for sync_entry in "${!sync_entries[@]}"; do	
 						while IFS=$'\t' read -r timestamp source syncjob message; do
 							if [[ "${source}" == "${host}" ]]; then
 								case $message in
@@ -223,8 +238,9 @@ gfx(){
 								echo -e " \t$timestamp\t$syncjob\t$message$(tput el)"
 							fi
 						done < <(echo -e ${sync_entries[${sync_entry}]})
-
+						
 					done
+					echo "$(tput el)"
 				done | column -t -s "$(printf '\t')"
 				syncjob_update=false
 				tput rc

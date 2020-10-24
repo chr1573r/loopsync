@@ -5,7 +5,7 @@ When lsn invokes a provider, the following positional parameters are passed alon
 <source> <category> <syncjob> <msg>
 
   source: 
-           (default)  SSH_CLIENT dns name (so that lsn may be invoked remotly from a loopsync host)
+           (default)  SSH_CLIENT dns name (so that lsn may be invoked remotely from a loopsync host)
            (fallback) local hostname
 
   category:

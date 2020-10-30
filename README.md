@@ -77,8 +77,23 @@ after a set number of seconds.
 
 loopsync continues to run until interrupted by `Ctrl-C` or killed otherwise. 
  
+Notify hooks and lsn
+--------------------
 
-Technical details:
+Loopstat has a feature called notifyhooks
+As loopstat is running, performing syncs, or encounter errors, it can trigger a notifyhook, which can be an arbitrary command or script
+
+In the folder `lsn` you'll find a ready to use notifyhook framework implementation
+lsn reformats notifyhooks to something more human readable, and it's fan out design allows you to send notifications to multiple tarets
+
+lsn ships with a few notification providers by default: slack, loopstat and loopback (for debugging)
+Like a notifyhooks, lsn providers can be any executable command or script, so it's easy to make your own providers.
+
+Here is an example of loopsync sending notifications to Slack using the lsn slack provider:
+![loopsync slack](https://raw.githubusercontent.com/chr1573r/chr1573r.github.io/master/repo-assets/loopsync/img/slack.png)
+
+
+Technical details
 ------------------
 
 Written in bash.
@@ -88,8 +103,13 @@ Besides bash, you'll need ssh(d) and rsync and the following common binaries:
 Should run on the most common Linux distros, 
 tested in development on raspian, ClearOS 5 and FreeNAS 8.
 
+Requirements above applies to loopsync itself, not lsn or loopstat.
+lsn/loopstat requires a newer environment.
+It has been tested on Debian 8 with bash 4.3, but newer distro's/bash versions should work.
 
-Troubleshooting/Tips and tricks:
+
+
+Troubleshooting/Tips and tricks
 --------------------------------
 
 Read the man page and/or check tutorials for rsync. You need to know basic rsync
@@ -116,7 +136,3 @@ Experiment with the different options in global.cfg to see what works best on yo
 
 global.cfg and sync configs are read using `source`, so you can easily inject your own
 stuff in them if you want to
-
-With some additional work, you can hook it up to Slack or something else using the built-in notifyhooks
-![loopsync slack](https://raw.githubusercontent.com/chr1573r/chr1573r.github.io/master/repo-assets/loopsync/img/slack.png)
-

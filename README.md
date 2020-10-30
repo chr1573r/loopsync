@@ -1,4 +1,4 @@
-loopsync v.2 - README v.1.1
+loopsync v.2 - README
 =========================
 http://csdnserver.com - http://github.com/chr1573r/loopsync
 
@@ -76,21 +76,6 @@ You change this behavior by enabling auto-wakeup in global.cfg. This enables loo
 after a set number of seconds.
 
 loopsync continues to run until interrupted by `Ctrl-C` or killed otherwise. 
- 
-Notify hooks and lsn
---------------------
-
-Loopstat has a feature called notifyhooks
-As loopstat is running, performing syncs, or encounter errors, it can trigger a notifyhook, which can be an arbitrary command or script
-
-In the folder `lsn` you'll find a ready to use notifyhook framework implementation
-lsn reformats notifyhooks to something more human readable, and it's fan out design allows you to send notifications to multiple tarets
-
-lsn ships with a few notification providers by default: slack, loopstat and loopback (for debugging)
-Like a notifyhooks, lsn providers can be any executable command or script, so it's easy to make your own providers.
-
-Here is an example of loopsync sending notifications to Slack using the lsn slack provider:
-![loopsync slack](https://raw.githubusercontent.com/chr1573r/chr1573r.github.io/master/repo-assets/loopsync/img/slack.png)
 
 
 Technical details
@@ -136,3 +121,41 @@ Experiment with the different options in global.cfg to see what works best on yo
 
 global.cfg and sync configs are read using `source`, so you can easily inject your own
 stuff in them if you want to
+
+
+Notify hooks and lsn
+--------------------
+
+Loopstat has a feature called notifyhooks
+As loopstat is running, performing syncs, or encounter errors, it can trigger a notifyhook, which can be an arbitrary command or script
+
+In the folder `lsn` you'll find a ready to use notifyhook framework implementation
+lsn reformats notifyhooks to something more human readable, and it's fan out design allows you to send notifications to multiple tarets
+
+lsn ships with a few notification providers by default: slack, loopstat and loopback (for debugging)
+Like a notifyhooks, lsn providers can be any executable command or script, so it's easy to make your own providers.
+A single lsn installation can be used by more than one loopsync host, and it will try to detect if it is being invoked remotely over SSH and retain the original source of the notifyhook before it dispatches the notifcation to the enabled providers.
+
+Here is an example of loopsync sending notifications to Slack using the lsn slack provider:
+![loopsync slack](https://raw.githubusercontent.com/chr1573r/chr1573r.github.io/master/repo-assets/loopsync/img/slack.png)
+
+loopstat
+--------
+loopstat is a dashboard that displays loopsync statistics and current status
+
+Features:
+- Supports multiple loopsync hosts and syncjobs per host
+- Displays wakeup time with countdown if loopsync host is sleeping
+- Timestamps per host status and syncjob update, making it easy to check how long it's been since the last sync
+- Hostlog display which shows a timeline of the last 10 host events received by loopstat
+- Automatically resizes when the terminal window changes size
+
+How it works:
+loopstat continously polls a "receiver", which is just a plaintext file
+lsn writes to this receiver on every notifiyhook event from loopsync, which is then parsed by loopstat
+This allows loopstat to receive updates in near real-time from multiple loopsync hosts.
+A limitation with this design is that loopstat has no persistance
+If you restart loopstat, all history is lost and stats will be populated again as they occur
+
+Screenshot
+![loopsync slack](https://raw.githubusercontent.com/chr1573r/chr1573r.github.io/master/repo-assets/loopsync/img/loopstat.png)
